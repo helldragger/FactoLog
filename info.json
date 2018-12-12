@@ -1,0 +1,11 @@
+{
+    "name": "FactoLog",
+    "version": "1.0.0",
+    "title": "FactoLog",
+    "author": "Helldragger",
+    "contact": "",
+    "homepage": "",
+    "factorio_version": "0.16",
+    "dependencies": ["base >= 0.16"],
+    "description": "This mod logs the current game statistics and main events such as the latest completed researches."
+}
