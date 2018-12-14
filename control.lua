@@ -81,42 +81,8 @@ addConfigSetting("ItemsLaunchedMode", "FactoLog-2-launched-items-statistics")
 addConfigSetting("RocketLaunchedMode", "FactoLog-2-launched-rockets-statistics")
 addConfigSetting("EvolutionFactorMode", "FactoLog-2-evolution-factor-statistics")
 
-<<<<<<< HEAD
 for alias,realsettingname in pairs(ConfigName) do
    loadConfigSetting(realsettingname)
-=======
-SolidProductionMode = settings.global["solid-production-statistics"].value
-FluidProductionMode = settings.global["fluid-production-statistics"].value
-KillCountMode = settings.global["kill-count-statistics"].value
-EntityBuildMode = settings.global["entity-build-statistics"].value
-FolderName = settings.global["logfile-folder-name"].value
---todo add those to the settings
-ItemsLaunchedMode = false
-RocketLaunchedMode = false
-EvolutionFactorMode = false
-AIReminderMode = false
-TechnologyReminderMode = false
-
-local interval = settings.global["statistics-logging-interval"].value
-StatsTimeDelta = 60*60
-
-if (interval == "5s") then
-   StatsTimeDelta = 5*60
-elseif (interval == "10s") then
-   StatsTimeDelta = 10*60
-elseif (interval == "30s") then
-   StatsTimeDelta = 30*60
-elseif (interval == "1m") then
-   StatsTimeDelta = 60*60
-elseif (interval == "5m") then
-   StatsTimeDelta = 300*60
-elseif (interval == "10m") then
-   StatsTimeDelta = 600*60
-elseif (interval == "30m") then
-   StatsTimeDelta = 1800*60
-elseif (interval == "1h") then
-   StatsTimeDelta = 3600*60
->>>>>>> b2588156e48aa5119c51bd76aa9b629539ca484d
 end
 
 function reloadConfig()
@@ -168,21 +134,13 @@ function prodDataToStr(data)
 end
 
 function arrayStatsToStr(name, data)
-<<<<<<< HEAD
    local str = {name, ";INPUT;"}
-=======
-   local str = {name, ";"}
->>>>>>> b2588156e48aa5119c51bd76aa9b629539ca484d
    str[#str+1] = prodDataToStr(data)
    return table.concat(str, "")
 end
 
 function simpleStatsToStr(name, data)
-<<<<<<< HEAD
    return table.concat({name, ";INPUT;", getLocalisedName(tostring(data)), ";"}, "")
-=======
-   return table.concat({name, ";", tostring(data), ";"}, "")
->>>>>>> b2588156e48aa5119c51bd76aa9b629539ca484d
 end
 
 function prodStatsToStr(statName, stats, MODE)
@@ -206,16 +164,11 @@ end
 function dumpForceStats(force)
    --productions and other flow statistics of the game
    local stats = {";STATS;"..force.name..";"}
-<<<<<<< HEAD
    if (not (getConfigSetting("SolidProductionMode") == "none")) then
       stats[#stats + 1] = prodStatsToStr("SOLID", force.item_production_statistics, getConfigSetting("SolidProductionMode"))
    end
    if (not (getConfigSetting("FluidProductionMode") == "none")) then
       stats[#stats + 1] = prodStatsToStr("FLUID", force.fluid_production_statistics, getConfigSetting("FluidProductionMode"))
-=======
-   if (not (SolidProductionMode == "none")) then
-      stats[#stats + 1] = prodStatsToStr("SOLID", force.item_production_statistics, SolidProductionMode)
->>>>>>> b2588156e48aa5119c51bd76aa9b629539ca484d
    end
    if (not (getConfigSetting("KillCountMode") == "none")) then
       stats[#stats + 1] = prodStatsToStr("KILLS", force.kill_count_statistics, getConfigSetting("KillCountMode"))
@@ -226,30 +179,12 @@ function dumpForceStats(force)
    if (getConfigSetting("ItemsLaunchedMode")) then
       stats[#stats + 1] = arrayStatsToStr("LAUNCHED", force.items_launched)
    end
-<<<<<<< HEAD
    if (getConfigSetting("RocketLaunchedMode")) then
       stats[#stats + 1] = simpleStatsToStr("ROCKETS", force.rockets_launched)
    end
    if (getConfigSetting("EvolutionFactorMode")) then
       stats[#stats + 1] = simpleStatsToStr("EVOLUTION", force.evolution_factor)
    end
-=======
-   if (ItemsLaunchedMode) then
-      stats[#stats + 1] = arrayStatsToStr("LAUNCHED", force.items_launched)
-   end
-   if (RocketLaunchedMode) then
-      stats[#stats + 1] = simpleStatsToStr("ROCKETS", force.rockets_launched)
-   end
-   if (EvolutionFactorMode) then
-      stats[#stats + 1] = simpleStatsToStr("EVOLUTION", force.evolution_factor)
-   end
-   if (AIReminderMode) then
-      stats[#stats + 1] = simpleStatsToStr("AI", force.ai_controllable)
-   end
-   if (TechnologyReminderMode) then
-      --stats[#stats + 1] = techStatsToStr("AI", force.technologies)
-   end
->>>>>>> b2588156e48aa5119c51bd76aa9b629539ca484d
 
    getLogger(force.name).log(table.concat(stats,""))
 end
@@ -279,7 +214,6 @@ script.on_event({defines.events.on_forces_merged},
 
 script.on_event({defines.events.on_runtime_mod_setting_changed},
    function (e)
-<<<<<<< HEAD
       for _,v in pairs(ConfigSettingsList) do
          if e.setting == v then
             loadConfigSetting(e.setting)
@@ -289,13 +223,5 @@ script.on_event({defines.events.on_runtime_mod_setting_changed},
       
    end
 )
-=======
-      if(e.setting == "statistics-logging-interval")then
-         reloadConfig()
-      end
-   end
-)
-
->>>>>>> b2588156e48aa5119c51bd76aa9b629539ca484d
 
 running = true
