@@ -125,12 +125,13 @@ end
 function prodDataToStr(data)
    local t = { }
    for k,v in pairs(data) do
-      t[#t+1] = getLocalisedName(tostring(k))
-      t[#t+1] = ":"
-      t[#t+1] = tostring(v)
-      t[#t+1] = ";"
+	    t[#t+1] = dataToStr(k, v)
    end
    return table.concat(t,"")
+end
+
+function dataToStr(key, value)
+	return table.concat({getLocalisedName(tostring(key)), ":", tostring(value), ";"}, "")
 end
 
 function arrayStatsToStr(name, data)
@@ -139,8 +140,9 @@ function arrayStatsToStr(name, data)
    return table.concat(str, "")
 end
 
-function simpleStatsToStr(name, data)
-   return table.concat({name, ";INPUT;", getLocalisedName(tostring(data)), ";"}, "")
+function numericStatsToStr(name, data)
+   
+   return table.concat({name, ";INPUT;", dataToStr("value",data)}, "")
 end
 
 function prodStatsToStr(statName, stats, MODE)
@@ -180,29 +182,100 @@ function dumpForceStats(force)
       stats[#stats + 1] = arrayStatsToStr("LAUNCHED", force.items_launched)
    end
    if (getConfigSetting("RocketLaunchedMode")) then
-      stats[#stats + 1] = simpleStatsToStr("ROCKETS", force.rockets_launched)
+      stats[#stats + 1] = numericStatsToStr("ROCKETS", force.rockets_launched)
    end
    if (getConfigSetting("EvolutionFactorMode")) then
-      stats[#stats + 1] = simpleStatsToStr("EVOLUTION", force.evolution_factor)
+      stats[#stats + 1] = numericStatsToStr("EVOLUTION", force.evolution_factor)
    end
 
    getLogger(force.name).log(table.concat(stats,""))
 end
 
+cache_recipes = {}
 
-script.on_event({defines.events.on_tick},
-   function (e)
-      if getConfigSetting("isLogging") then
-         if e.tick % getConfigSetting("StatsTimeDelta") == 0 then --common trick to reduce how often this runs, we don't want it running every tick, just 1/second
-            table.each(game.forces, dumpForceStats)
-         end
-      end
-   end
-)
+function getUnlockedProducts(modifiers)
+	local prods = {fluid={}, item={}}
+	for _, modifier in pairs(modifiers) do
+		if modifier.type == "unlock-recipe" then
+			recipe = nil
+			if cache_recipes[modifier.recipe] == nil then
+				recipe = game.recipe_prototypes[modifier.recipe]
+				cache_recipes[modifier.recipe] = recipe
+			else
+				recipe = cache_recipes[modifier.recipe]
+			end
+			for _,product in pairs(recipe.products) do
+				prods[product.type][#prods[product.type] + 1] = product.name
+			end
+
+		end
+	end
+	return prods
+end
+
+cache_techDep = {}
+
+function getTechData(tech)
+	techDep = nil
+	if cache_techDep[tech.name] == nil then
+		local prerequisitesStr = {}
+		for pretech_name, _ in pairs(tech.prerequisites) do
+			prerequisitesStr[#prerequisitesStr + 1] = pretech_name
+		end
+		if #prerequisitesStr > 0 then
+			prerequisitesStr = table.concat({"prerequisites-researches;", table.concat(prerequisitesStr, ";"), ";"}, "")
+		else
+			prerequisitesStr = ""
+		end
+
+		local products = getUnlockedProducts(tech.effects)
+		getLogger("DEBUG").log(tostring(#products))
+		getLogger("DEBUG").log(tostring(#products.item))
+		getLogger("DEBUG").log(tostring(#products.fluid))
+		itemsStr = ""
+		if #products.item > 0 then
+			itemsStr = table.concat({"unlocked-items;", table.concat(products.item, ";") , ";"},"")
+		end
+		fluidStr = ""
+		if #products.fluid > 0 then
+			fluidStr = table.concat({"unlocked-fluids;", table.concat(products.fluid, ";") , ";"},"")
+		end
+
+		techDep = table.concat({"research-name:" ..tech.name.. ";", itemsStr, fluidStr, prerequisitesStr}, "")
+		cache_techDep[tech.name] = techDep
+	else
+		techDep = cache_techDep[tech.name]
+	end
+	return techDep
+end
+
+function generateTechData()
+	lines = {}
+	for _, techPrototype in pairs(game.technology_prototypes) do
+		lines[#lines + 1] = getTechData(techPrototype)
+	end
+	game.write_file("logs/FactoLog/"..getConfigSetting("LogfileName")..".techdata", table.concat(lines, "\n"), false)
+end
+
+script.on_init(generateTechData)
+
+script.on_nth_tick( getConfigSetting("StatsTimeDelta"), 
+	function ()
+		if getConfigSetting("isLogging") then
+			table.each(game.forces, dumpForceStats)
+        end
+	end
+ )
+
 
 script.on_event({defines.events.on_research_finished},
    function (e)
-      getLogger(e.research.force.name).log(";EVENT;"..e.research.force.name..";RESEARCHED;"..e.research.name..";")
+      getLogger(e.research.force.name).log(
+         ";EVENT;"..
+         e.research.force.name..
+         ";RESEARCHED;"..
+         dataToStr("name",e.research.name)..
+         dataToStr("level",e.research.level))
    end
 )
 
