@@ -259,9 +259,9 @@ end
 
 script.on_init(generateTechData)
 
-script.on_nth_tick( getConfigSetting("StatsTimeDelta"), 
-	function ()
-		if getConfigSetting("isLogging") then
+script.on_event( {defines.events.on_tick}, 
+	function (e)
+		if getConfigSetting("isLogging") and e.tick % getConfigSetting("StatsTimeDelta") == 0 then
 			table.each(game.forces, dumpForceStats)
         end
 	end
